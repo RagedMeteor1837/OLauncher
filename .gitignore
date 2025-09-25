@@ -1,10 +1,11 @@
-work
-launcher
-.*.swp
-olauncher
+/olauncher/
+/launcher/
+/work/
 
-.idea
+.idea/
 *.iml
-target
+.*.swp
+
+**/target/
 
 *.jar

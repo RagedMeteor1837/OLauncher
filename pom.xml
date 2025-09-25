@@ -7,7 +7,7 @@
     <groupId>dev.figboot</groupId>
     <artifactId>olauncher-parent</artifactId>
     <version>0.1.0</version>
-    <url>https://github.com/bigfoot547/olauncher</url>
+    <url>https://github.com/RagedMeteor1837/olauncher</url>
     <packaging>pom</packaging>
 
     <modules>

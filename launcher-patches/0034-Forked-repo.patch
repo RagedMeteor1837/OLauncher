@@ -1,0 +1,61 @@
+From f2ad5cbd221a6e5fb1883767fe5dbe11b0ac6582 Mon Sep 17 00:00:00 2001
+From: RagedMeteor1837 <148640131+RagedMeteor1837@users.noreply.github.com>
+Date: Thu, 25 Sep 2025 17:55:40 +0100
+Subject: [PATCH] Forked repo
+
+
+diff --git a/pom.xml b/pom.xml
+index 8a7bf9b..fc3d6ab 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -12,7 +12,7 @@
+     </parent>
+ 
+     <artifactId>olauncher</artifactId>
+-    <version>1.7.3_03</version>
++    <version>2.0.0</version>
+ 
+     <properties>
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+diff --git a/src/main/java/com/mojang/launcher/game/runner/AbstractGameRunner.java b/src/main/java/com/mojang/launcher/game/runner/AbstractGameRunner.java
+index d9c609c..3242c8b 100644
+--- a/src/main/java/com/mojang/launcher/game/runner/AbstractGameRunner.java
++++ b/src/main/java/com/mojang/launcher/game/runner/AbstractGameRunner.java
+@@ -291,7 +291,7 @@ public abstract class AbstractGameRunner implements GameRunner, DownloadListener
+                         this.setStatus(GameInstanceStatus.LAUNCHING);
+                         this.launchGame();
+                     } catch (Throwable var5) {
+-                        LOGGER.fatal("Fatal error launching game. Report this to https://github.com/olauncher/olauncher/issues/new please!", var5); // olauncher - have people report bugs to us
++                        LOGGER.fatal("Fatal error launching game. Report this to https://github.com/RagedMeteor1837/olauncher/issues/new please!", var5); // olauncher - have people report bugs to us
+                     }
+                 }
+             }
+diff --git a/src/main/java/dev/figboot/olauncher/launcher/update/LauncherUpdateChecker.java b/src/main/java/dev/figboot/olauncher/launcher/update/LauncherUpdateChecker.java
+index e7febd1..7541190 100644
+--- a/src/main/java/dev/figboot/olauncher/launcher/update/LauncherUpdateChecker.java
++++ b/src/main/java/dev/figboot/olauncher/launcher/update/LauncherUpdateChecker.java
+@@ -28,7 +28,7 @@ public class LauncherUpdateChecker {
+     private static final Logger LOGGER = LogManager.getLogger();
+     private static final String INFO_FILE_NAME = "olauncher_update.json";
+ 
+-    private static final URL GITHUB_LATEST_RELEASE_URL = constantURL("https://api.github.com/repos/olauncher/olauncher/releases/latest");
++    private static final URL GITHUB_LATEST_RELEASE_URL = constantURL("https://api.github.com/repos/RagedMeteor1837/olauncher/releases/latest");
+ 
+     private static final long UPDATE_CHECK_FREQ = 3;
+     private static final TemporalUnit UPDATE_CHECK_FREQ_UNIT = ChronoUnit.HOURS;
+diff --git a/src/main/java/net/minecraft/launcher/LauncherConstants.java b/src/main/java/net/minecraft/launcher/LauncherConstants.java
+index 6754e1c..f09aafb 100644
+--- a/src/main/java/net/minecraft/launcher/LauncherConstants.java
++++ b/src/main/java/net/minecraft/launcher/LauncherConstants.java
+@@ -21,7 +21,7 @@ public class LauncherConstants {
+     public static final String URL_JAR_FALLBACK = "https://s3.amazonaws.com/Minecraft.Download/";
+     public static final String URL_RESOURCE_BASE = "https://resources.download.minecraft.net/";
+     public static final String URL_LIBRARY_BASE = "https://libraries.minecraft.net/";
+-    public static final String URL_BLOG = System.getProperty("dev.figboot.olauncher.URLNews", "https://olauncher.github.io/news");
++    public static final String URL_BLOG = System.getProperty("dev.figboot.olauncher.URLNews", "https://ragedmeteor1837.github.io/mcnews/news/");
+     public static final String URL_SUPPORT = "http://help.mojang.com/?ref=launcher";
+     public static final String URL_STATUS_CHECKER = "http://status.mojang.com/check";
+     public static final int UNVERSIONED_BOOTSTRAP_VERSION = 0;
+-- 
+2.43.0
+

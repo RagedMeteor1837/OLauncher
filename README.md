@@ -1,11 +1,11 @@
-# Project Status
-This project is on indefinite hiatus. Check the forks tab to see if anyone is maintaining a fork of this project. I have relicensed olauncher as CC0 with the consent of the contributors, so you are free to distribute any forks with whatever license you see fit.
-
-# olauncher
+# OLauncher
 The old launcher we all know and love with the quality-of-life features of the new launcher. This aims to support java 8 through modern java.
 
+## Project Status
+This project is maintained on a best-effort basis and updates will only be made when I have the time. The fork was originally created to ensure the launcher could display new update notes and similar fixes. There are currently no planned features beyond this scope.
+
 ## How to use
-1. Go to the [latest release](https://github.com/olauncher/olauncher/releases/latest)
+1. Go to the [latest release](https://github.com/RagedMeteor1837/olauncher/releases/latest)
 2. Download the `olauncher-xxx-redist.jar` file
 3. Run it
 
@@ -17,19 +17,30 @@ The old launcher we all know and love with the quality-of-life features of the n
   - You can still provide your own JVMs
 - Update checking
 
-## Planned Features
-- Add skin/cape management
-
-## How to build from source
-The commands must be run in the following order to build from source:
+## Build from source
+**1. Clone the repository**
+   ```bash
+   git clone https://github.com/RagedMeteor1837/olauncher.git
+   cd olauncher
+   git submodule update --init
+  ```
+**2. Run the build scripts<br>**
+These commands must be run in the following order to build from source:
 - `decompile.sh`
-  - Downloads original jar and decompiles it
+  - Downloads the original launcher JAR and decompiles it into source files.
 - `init.sh`
-  - Turns decompiled sources into a git repository
+  - Initialises the decompiled sources as a new Git repository.
 - `applyPatches.sh`
   - Applies OLauncher patches to the decompiled sources
 - `mvn clean package`
-  - Compiles the patched launcher
+  - Builds and packages the patched launcher using Maven.
 - `genredist.sh` (optional)
-  - Make sure you've run `git submodule update --init` as this script uses the `AutoOL` submodule.
   - Generates the redistributable JAR - Do not distribute the JARs in `olauncher/target`!
+
+## Other scripts
+- `clean.sh`
+  - Cleans the source directory
+- `maintain.sh`
+  - Provides maintenance utilities for the launcher build.
+- `rebuildPatches.sh`
+  - Regenerates patch files by cleaning and updating them against the current repository state, ensuring they stay in sync with the decompiled sources.

@@ -5,7 +5,7 @@ The old launcher we all know and love with the quality-of-life features of the n
 This project is maintained on a best-effort basis and updates will only be made when I have the time. The fork was originally created to ensure the launcher could display [new update notes](https://ragedmeteor1837.github.io/mcnews/news/) and similar fixes. There are currently no planned features beyond this scope.
 
 ## How to use
-1. Go to the [latest release](https://github.com/RagedMeteor1837/olauncher/releases/latest)
+1. Go to the [latest release](https://github.com/RagedMeteor1837/OLauncher/releases/latest)
 2. Download the `olauncher-xxx-redist.jar` file
 3. Run it
 
@@ -20,8 +20,8 @@ This project is maintained on a best-effort basis and updates will only be made 
 ## Build from source
 **1. Clone the repository**
    ```bash
-   git clone https://github.com/RagedMeteor1837/olauncher.git
-   cd olauncher
+   git clone https://github.com/RagedMeteor1837/OLauncher.git
+   cd OLauncher
    git submodule update --init
   ```
 **2. Run the build scripts<br>**

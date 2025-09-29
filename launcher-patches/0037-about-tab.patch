@@ -1,0 +1,237 @@
+From 226685c53bb1e830e6c01a690e7e48eefe771f3a Mon Sep 17 00:00:00 2001
+From: RagedMeteor1837 <148640131+RagedMeteor1837@users.noreply.github.com>
+Date: Mon, 29 Sep 2025 23:23:11 +0100
+Subject: [PATCH] about tab
+
+
+diff --git a/src/main/java/net/minecraft/launcher/ui/tabs/AboutTab.java b/src/main/java/net/minecraft/launcher/ui/tabs/AboutTab.java
+new file mode 100644
+index 0000000..4a04058
+--- /dev/null
++++ b/src/main/java/net/minecraft/launcher/ui/tabs/AboutTab.java
+@@ -0,0 +1,183 @@
++package net.minecraft.launcher.ui.tabs;
++
++import com.google.gson.Gson;
++import com.google.gson.JsonArray;
++import com.google.gson.JsonElement;
++import com.google.gson.JsonObject;
++
++import javax.swing.BorderFactory;
++import javax.swing.JLabel;
++import javax.swing.JPanel;
++import javax.swing.JScrollPane;
++import javax.swing.JSplitPane;
++import javax.swing.SwingUtilities;
++import javax.swing.border.EmptyBorder;
++import javax.swing.border.TitledBorder;
++import java.awt.BorderLayout;
++import java.awt.Dimension;
++import java.awt.Font;
++import java.awt.GridBagConstraints;
++import java.awt.GridBagLayout;
++import java.awt.Insets;
++import java.io.BufferedReader;
++import java.io.InputStreamReader;
++import java.net.HttpURLConnection;
++import java.net.URL;
++import java.nio.charset.StandardCharsets;
++import java.util.AbstractMap;
++import java.util.ArrayList;
++import java.util.Comparator;
++import java.util.List;
++import java.util.Map;
++
++import net.minecraft.launcher.Launcher;
++
++public class AboutTab extends JScrollPane {
++    private final Launcher minecraftLauncher;
++
++    private final JLabel statusLabel = new JLabel("<html>Loading status…</html>");
++    private final JLabel aboutLabel = new JLabel(
++        "<html><div style='font-family:Segoe UI, Sans-Serif; line-height:1.25; font-size:11px;'>"
++      + "<h3 style='margin:0 0 6px 0; font-size:13px;'>About OLauncher</h3>"
++      + "<p style='margin:0 0 6px 0;'>This is placeholder text. Add information about the launcher, "
++      + "version history, acknowledgements, or links here.</p>"
++      + "<p style='margin:0;'>You can also include support information and FAQ entries.</p>"
++      + "</div></html>"
++    );
++
++    public AboutTab(Launcher launcher) {
++        this.minecraftLauncher = launcher;
++
++        setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
++        getVerticalScrollBar().setUnitIncrement(16);
++
++        JPanel left = new JPanel(new GridBagLayout());
++        GridBagConstraints lc = new GridBagConstraints();
++        lc.gridx = 0; lc.gridy = 0; lc.weightx = 1.0; lc.weighty = 0.0;
++        lc.fill = GridBagConstraints.HORIZONTAL; lc.insets = new Insets(8, 8, 8, 8);
++        left.add(aboutLabel, lc);
++
++        JScrollPane leftScroll = new JScrollPane(left);
++        leftScroll.setBorder(new EmptyBorder(0,0,0,0));
++        leftScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
++        leftScroll.getVerticalScrollBar().setUnitIncrement(16);
++
++        JPanel right = new JPanel(new GridBagLayout());
++        TitledBorder tb = BorderFactory.createTitledBorder("Service Status");
++        tb.setTitleJustification(TitledBorder.LEFT);
++        tb.setTitlePosition(TitledBorder.TOP);
++        tb.setTitleFont(new Font("Dialog", Font.PLAIN, 11));
++        right.setBorder(BorderFactory.createCompoundBorder(tb, new EmptyBorder(4, 6, 6, 6)));
++
++        GridBagConstraints rc = new GridBagConstraints();
++        rc.gridx = 0; rc.gridy = 0; rc.weightx = 1.0; rc.weighty = 1.0;
++        rc.fill = GridBagConstraints.BOTH; rc.insets = new Insets(0,0,0,0);
++        right.add(statusLabel, rc);
++
++        JScrollPane rightScroll = new JScrollPane(right);
++        rightScroll.setBorder(new EmptyBorder(0,0,0,0));
++        rightScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
++        rightScroll.getVerticalScrollBar().setUnitIncrement(16);
++
++        int minStatusWidth = 220;
++        int prefStatusWidth = 260;
++        rightScroll.setMinimumSize(new Dimension(minStatusWidth, 0));
++        rightScroll.setPreferredSize(new Dimension(prefStatusWidth, 0));
++        rightScroll.setMaximumSize(new Dimension(400, Integer.MAX_VALUE));
++
++        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftScroll, rightScroll);
++        split.setBorder(new EmptyBorder(8,8,8,8));
++        split.setContinuousLayout(true);
++        split.setOneTouchExpandable(false);
++        split.setDividerSize(6);
++        split.setResizeWeight(1.0);
++
++        JPanel root = new JPanel(new BorderLayout());
++        root.add(split, BorderLayout.CENTER);
++        setViewportView(root);
++
++        SwingUtilities.invokeLater(() -> split.setDividerLocation(1.0));
++
++        fetchAndRenderStatus();
++    }
++
++    public Launcher getMinecraftLauncher() {
++        return this.minecraftLauncher;
++    }
++
++    private void fetchAndRenderStatus() {
++        new Thread(() -> {
++            try {
++                URL url = new URL("https://olauncherstatus.onrender.com/status");
++                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
++                conn.setRequestMethod("GET");
++                conn.setConnectTimeout(7000);
++                conn.setReadTimeout(10000);
++                conn.setRequestProperty("Accept", "application/json");
++                conn.setRequestProperty("User-Agent", "OLauncher/AboutTab (+https://github.com/ragedmeteor1837/olauncher)");
++
++                int http = conn.getResponseCode();
++                if (http != HttpURLConnection.HTTP_OK) throw new RuntimeException("HTTP " + http);
++
++                StringBuilder content = new StringBuilder();
++                try (BufferedReader in = new BufferedReader(
++                        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
++                    String line;
++                    while ((line = in.readLine()) != null) content.append(line);
++                } finally {
++                    conn.disconnect();
++                }
++
++                JsonArray arr = new Gson().fromJson(content.toString(), JsonArray.class);
++
++                List<Map.Entry<String, String>> items = new ArrayList<>();
++                for (JsonElement el : arr) {
++                    if (!el.isJsonObject()) continue;
++                    JsonObject obj = el.getAsJsonObject();
++                    for (Map.Entry<String, JsonElement> e : obj.entrySet()) {
++                        String host = e.getKey();
++                        String state = (e.getValue() != null && !e.getValue().isJsonNull())
++                                ? e.getValue().getAsString()
++                                : "unknown";
++                        items.add(new AbstractMap.SimpleEntry<>(host, state));
++                    }
++                }
++
++                items.sort(Comparator.comparing(Map.Entry::getKey, String.CASE_INSENSITIVE_ORDER));
++
++                StringBuilder html = new StringBuilder();
++                html.append("<html><div style='font-family:Segoe UI, Sans-Serif; font-size:11px; line-height:1.2;'>")
++                    .append("<table cellspacing='0' cellpadding='0' style='border-collapse:collapse;'>");
++
++                for (Map.Entry<String, String> it : items) {
++                    String host = escape(it.getKey());
++                    String state = it.getValue() == null ? "unknown" : it.getValue().toLowerCase();
++                    String colour = "green".equals(state) ? "green" :
++                                    "red".equals(state) ? "red" : "gray";
++                    String label = state.toUpperCase();
++
++                    html.append("<tr>")
++                        .append("<td style='padding-right:6px; white-space:nowrap;'>").append(host).append("</td>")
++                        .append("<td style='padding-right:6px;'>:</td>")
++                        .append("<td><b><span style='color:").append(colour).append("'>")
++                        .append(label).append("</span></b></td>")
++                        .append("</tr>");
++                }
++                html.append("</table></div></html>");
++
++                SwingUtilities.invokeLater(() -> statusLabel.setText(html.toString()));
++
++            } catch (Exception e) {
++                SwingUtilities.invokeLater(() ->
++                    statusLabel.setText("<html><b>Failed to fetch status</b><br/>" + escape(e.getMessage()) + "</html>")
++                );
++            }
++        }, "Status-Fetcher").start();
++    }
++
++    private static String escape(String s) {
++        if (s == null) return "";
++        return s.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
++                .replace("\"","&quot;").replace("'","&#39;");
++    }
++}
+diff --git a/src/main/java/net/minecraft/launcher/ui/tabs/LauncherTabPanel.java b/src/main/java/net/minecraft/launcher/ui/tabs/LauncherTabPanel.java
+index 07d3253..d2c74ab 100644
+--- a/src/main/java/net/minecraft/launcher/ui/tabs/LauncherTabPanel.java
++++ b/src/main/java/net/minecraft/launcher/ui/tabs/LauncherTabPanel.java
+@@ -8,6 +8,7 @@ public class LauncherTabPanel extends JTabbedPane {
+     private final Launcher minecraftLauncher;
+     private final WebsiteTab blog;
+     private final ConsoleTab console;
++    private final AboutTab about;
+     private CrashReportTab crashReportTab;
+ 
+     public LauncherTabPanel(Launcher var1) {
+@@ -15,6 +16,7 @@ public class LauncherTabPanel extends JTabbedPane {
+         this.minecraftLauncher = var1;
+         this.blog = new WebsiteTab(var1);
+         this.console = new ConsoleTab(var1);
++        this.about = new AboutTab(var1);
+         this.createInterface();
+     }
+ 
+@@ -22,6 +24,7 @@ public class LauncherTabPanel extends JTabbedPane {
+         this.addTab("Update Notes", this.blog);
+         this.addTab("Instance Editor", new ProfileListTab(this.minecraftLauncher));
+         this.addTab("Launcher Log", this.console);
++        this.addTab("About OLauncher", this.about);
+     }
+ 
+     public Launcher getMinecraftLauncher() {
+@@ -36,6 +39,10 @@ public class LauncherTabPanel extends JTabbedPane {
+         return this.console;
+     }
+ 
++    public AboutTab getAbout() {
++        return this.about;
++    }
++
+     public void showConsole() {
+         this.setSelectedComponent(this.console);
+     }
+-- 
+2.43.0
+

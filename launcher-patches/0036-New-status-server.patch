@@ -1,0 +1,76 @@
+From 3fb844d15033d39d112540703e043526ef982205 Mon Sep 17 00:00:00 2001
+From: RagedMeteor1837 <148640131+RagedMeteor1837@users.noreply.github.com>
+Date: Mon, 29 Sep 2025 21:26:09 +0100
+Subject: [PATCH] New status server
+
+
+diff --git a/src/main/java/net/minecraft/launcher/Launcher.java b/src/main/java/net/minecraft/launcher/Launcher.java
+index f951bb2..07f8ed9 100644
+--- a/src/main/java/net/minecraft/launcher/Launcher.java
++++ b/src/main/java/net/minecraft/launcher/Launcher.java
+@@ -215,9 +215,9 @@ public class Launcher {
+ 
+                 try {
+                     Launcher.this.profileManager.loadProfiles();
+-                    Launcher.LOGGER.info("Loaded " + Launcher.this.profileManager.getProfiles().size() + " profile(s); selected '" + Launcher.this.profileManager.getSelectedProfile().getName() + "'");
++                    Launcher.LOGGER.info("Loaded " + Launcher.this.profileManager.getProfiles().size() + " instance(s); selected '" + Launcher.this.profileManager.getSelectedProfile().getName() + "'");
+                 } catch (Throwable var6) {
+-                    Launcher.LOGGER.error("Unexpected exception refreshing profile list", var6);
++                    Launcher.LOGGER.error("Unexpected exception refreshing instance list", var6);
+                 }
+ 
+                 if (Launcher.this.requestedUser != null) {
+@@ -277,7 +277,7 @@ public class Launcher {
+                     try {
+                         this.profileManager.saveProfiles();
+                     } catch (IOException var6) {
+-                        LOGGER.error("Couldn't save profiles after refreshing auth!", var6);
++                        LOGGER.error("Couldn't save instances after refreshing auth!", var6);
+                     }
+ 
+                     this.profileManager.fireRefreshEvent();
+@@ -296,7 +296,7 @@ public class Launcher {
+                 try {
+                     this.profileManager.saveProfiles();
+                 } catch (IOException var3) {
+-                    LOGGER.error("Couldn't save profiles after refreshing auth!", var3);
++                    LOGGER.error("Couldn't save instances after refreshing auth!", var3);
+                 }
+ 
+                 this.profileManager.fireRefreshEvent();
+diff --git a/src/main/java/net/minecraft/launcher/LauncherConstants.java b/src/main/java/net/minecraft/launcher/LauncherConstants.java
+index f09aafb..4831ef0 100644
+--- a/src/main/java/net/minecraft/launcher/LauncherConstants.java
++++ b/src/main/java/net/minecraft/launcher/LauncherConstants.java
+@@ -17,13 +17,13 @@ import org.apache.commons.io.IOUtils;
+ public class LauncherConstants {
+     public static final int VERSION_FORMAT = 21;
+     public static final int PROFILES_FORMAT = 1;
+-    public static final URI URL_REGISTER = constantURI("https://account.mojang.com/register");
++    public static final URI URL_REGISTER = constantURI("https://account.microsoft.com/account/");
+     public static final String URL_JAR_FALLBACK = "https://s3.amazonaws.com/Minecraft.Download/";
+     public static final String URL_RESOURCE_BASE = "https://resources.download.minecraft.net/";
+     public static final String URL_LIBRARY_BASE = "https://libraries.minecraft.net/";
+     public static final String URL_BLOG = System.getProperty("dev.figboot.olauncher.URLNews", "https://ragedmeteor1837.github.io/mcnews/news/");
+     public static final String URL_SUPPORT = "http://help.mojang.com/?ref=launcher";
+-    public static final String URL_STATUS_CHECKER = "http://status.mojang.com/check";
++    public static final String URL_STATUS_CHECKER = "https://olauncherstatus.onrender.com/status";
+     public static final int UNVERSIONED_BOOTSTRAP_VERSION = 0;
+     public static final int MINIMUM_BOOTSTRAP_SUPPORTED = 4;
+     public static final int SUPER_COOL_BOOTSTRAP_VERSION = 100;
+diff --git a/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java b/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java
+index 91240e0..9379327 100644
+--- a/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java
++++ b/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java
+@@ -51,7 +51,7 @@ public class StatusPanelForm extends SidebarGridForm {
+                 try {
+                     TypeToken var1 = new TypeToken<List<Map<String, StatusPanelForm.ServerStatus>>>() {
+                     };
+-                    List var2 = (List)StatusPanelForm.this.gson.fromJson(Http.performGet(new URL("http://status.mojang.com/check"), StatusPanelForm.this.minecraftLauncher.getLauncher().getProxy()), var1.getType());
++                    List var2 = (List)StatusPanelForm.this.gson.fromJson(Http.performGet(new URL("https://olauncherstatus.onrender.com/status"), StatusPanelForm.this.minecraftLauncher.getLauncher().getProxy()), var1.getType());
+                     Iterator var3 = var2.iterator();
+ 
+                     while(var3.hasNext()) {
+-- 
+2.43.0
+

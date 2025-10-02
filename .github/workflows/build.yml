@@ -47,8 +47,8 @@ jobs:
         bash applyPatches.sh
     - name: Create local tags for versioning
       run: |
-        git -C olauncher tag -a v2.0.0-dev -m "v2.0.0-dev" || true
-        git tag -a v2.0.0-dev -m "v2.0.0-dev" || true
+        git -C olauncher tag -a v2.1.0 -m "v2.1.0" || true
+        git tag -a v2.1.0 -m "v2.1.0" || true
     - name: Compute versions
       run: |
         echo "OUTER_DESCR=$(git describe --tags --dirty --always || echo unknown)" >> $GITHUB_ENV

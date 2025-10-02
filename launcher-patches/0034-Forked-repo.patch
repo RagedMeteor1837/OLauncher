@@ -1,22 +1,9 @@
-From f2ad5cbd221a6e5fb1883767fe5dbe11b0ac6582 Mon Sep 17 00:00:00 2001
+From 17decf1b6e2444abaa92643896972471235cd3a9 Mon Sep 17 00:00:00 2001
 From: RagedMeteor1837 <148640131+RagedMeteor1837@users.noreply.github.com>
 Date: Thu, 25 Sep 2025 17:55:40 +0100
 Subject: [PATCH] Forked repo
 
 
-diff --git a/pom.xml b/pom.xml
-index 8a7bf9b..fc3d6ab 100644
---- a/pom.xml
-+++ b/pom.xml
-@@ -12,7 +12,7 @@
-     </parent>
- 
-     <artifactId>olauncher</artifactId>
--    <version>1.7.3_03</version>
-+    <version>2.0.0</version>
- 
-     <properties>
-         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 diff --git a/src/main/java/com/mojang/launcher/game/runner/AbstractGameRunner.java b/src/main/java/com/mojang/launcher/game/runner/AbstractGameRunner.java
 index d9c609c..3242c8b 100644
 --- a/src/main/java/com/mojang/launcher/game/runner/AbstractGameRunner.java

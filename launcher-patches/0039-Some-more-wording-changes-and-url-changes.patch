@@ -1,0 +1,102 @@
+From 9df533ecf23bd715de95b97ab84a52c05c235315 Mon Sep 17 00:00:00 2001
+From: RagedMeteor1837 <148640131+RagedMeteor1837@users.noreply.github.com>
+Date: Sun, 5 Oct 2025 15:03:36 +0100
+Subject: [PATCH] Some more wording changes and url changes
+
+
+diff --git a/src/main/java/net/minecraft/launcher/LauncherConstants.java b/src/main/java/net/minecraft/launcher/LauncherConstants.java
+index 4831ef0..9b454cf 100644
+--- a/src/main/java/net/minecraft/launcher/LauncherConstants.java
++++ b/src/main/java/net/minecraft/launcher/LauncherConstants.java
+@@ -22,7 +22,7 @@ public class LauncherConstants {
+     public static final String URL_RESOURCE_BASE = "https://resources.download.minecraft.net/";
+     public static final String URL_LIBRARY_BASE = "https://libraries.minecraft.net/";
+     public static final String URL_BLOG = System.getProperty("dev.figboot.olauncher.URLNews", "https://ragedmeteor1837.github.io/mcnews/news/");
+-    public static final String URL_SUPPORT = "http://help.mojang.com/?ref=launcher";
++    public static final String URL_SUPPORT = "https://help.minecraft.net/";
+     public static final String URL_STATUS_CHECKER = "https://olauncherstatus.onrender.com/status";
+     public static final int UNVERSIONED_BOOTSTRAP_VERSION = 0;
+     public static final int MINIMUM_BOOTSTRAP_SUPPORTED = 4;
+@@ -36,7 +36,7 @@ public class LauncherConstants {
+     public static final URI URL_FORGOT_USERNAME = constantURI("http://help.mojang.com/customer/portal/articles/1233873?ref=launcher");
+     public static final URI URL_FORGOT_PASSWORD_MINECRAFT = constantURI("http://help.mojang.com/customer/portal/articles/329524-change-or-forgot-password?ref=launcher");
+     public static final URI URL_FORGOT_MIGRATED_EMAIL = constantURI("http://help.mojang.com/customer/portal/articles/1205055-minecraft-launcher-error---migrated-account?ref=launcher");
+-    public static final URI URL_DEMO_HELP = constantURI("https://help.mojang.com/customer/portal/articles/1218766-can-only-play-minecraft-demo?ref=launcher");
++    public static final URI URL_DEMO_HELP = constantURI("https://help.minecraft.net/hc/en-us/articles/4408948974989-Minecraft-Java-Edition-Demo-Mode");
+     public static final URI URL_UPGRADE_WINDOWS = constantURI("https://launcher.mojang.com/download/MinecraftInstaller.msi");
+     public static final URI URL_UPGRADE_OSX = constantURI("https://launcher.mojang.com/download/Minecraft.dmg");
+     public static final int MAX_NATIVES_LIFE_IN_SECONDS = 3600;
+diff --git a/src/main/java/net/minecraft/launcher/SwingUserInterface.java b/src/main/java/net/minecraft/launcher/SwingUserInterface.java
+index 2f20259..7f87914 100644
+--- a/src/main/java/net/minecraft/launcher/SwingUserInterface.java
++++ b/src/main/java/net/minecraft/launcher/SwingUserInterface.java
+@@ -167,7 +167,7 @@ public class SwingUserInterface implements MinecraftUserInterface {
+             try {
+                 OperatingSystem.openLink(new URI("https://mojang.com/2013/06/minecraft-1-6-pre-release/"));
+             } catch (URISyntaxException var4) {
+-                LOGGER.error("Couldn't open bootstrap download link. Please visit https://mojang.com/2013/06/minecraft-1-6-pre-release/ manually.", var4);
++                LOGGER.error("Couldn't open bootstrap download link!", var4);
+             }
+         }
+ 
+diff --git a/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java b/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java
+index 9379327..a25f3a4 100644
+--- a/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java
++++ b/src/main/java/net/minecraft/launcher/ui/bottombar/StatusPanelForm.java
+@@ -17,8 +17,8 @@ import org.apache.logging.log4j.Logger;
+ 
+ public class StatusPanelForm extends SidebarGridForm {
+     private static final Logger LOGGER = LogManager.getLogger();
+-    private static final String SERVER_SESSION = "session.minecraft.net";
+-    private static final String SERVER_LOGIN = "login.minecraft.net";
++    private static final String SERVER_SESSION = "sessionserver.mojang.com";
++    private static final String SERVER_LOGIN = "login.microsoftonline.com";
+     private final Launcher minecraftLauncher;
+     private final JLabel sessionStatus = new JLabel("???");
+     private final JLabel loginStatus = new JLabel("???");
+@@ -56,10 +56,10 @@ public class StatusPanelForm extends SidebarGridForm {
+ 
+                     while(var3.hasNext()) {
+                         Map var4 = (Map)var3.next();
+-                        if (var4.containsKey("login.minecraft.net")) {
+-                            StatusPanelForm.this.loginStatus.setText(((StatusPanelForm.ServerStatus)var4.get("login.minecraft.net")).title);
+-                        } else if (var4.containsKey("session.minecraft.net")) {
+-                            StatusPanelForm.this.sessionStatus.setText(((StatusPanelForm.ServerStatus)var4.get("session.minecraft.net")).title);
++                        if (var4.containsKey("login.microsoftonline.com")) {
++                            StatusPanelForm.this.loginStatus.setText(((StatusPanelForm.ServerStatus)var4.get("login.microsoftonline.com")).title);
++                        } else if (var4.containsKey("sessionserver.mojang.com")) {
++                            StatusPanelForm.this.sessionStatus.setText(((StatusPanelForm.ServerStatus)var4.get("sessionserver.mojang.com")).title);
+                         }
+                     }
+                 } catch (Exception var5) {
+diff --git a/src/main/java/net/minecraft/launcher/ui/popups/login/AuthErrorForm.java b/src/main/java/net/minecraft/launcher/ui/popups/login/AuthErrorForm.java
+index 77d4259..7ff5584 100644
+--- a/src/main/java/net/minecraft/launcher/ui/popups/login/AuthErrorForm.java
++++ b/src/main/java/net/minecraft/launcher/ui/popups/login/AuthErrorForm.java
+@@ -85,8 +85,8 @@ public class AuthErrorForm extends JPanel {
+                 try {
+                     TypeToken var1 = new TypeToken<Map<String, AuthErrorForm.ServerStatus>>() {
+                     };
+-                    Map var2 = (Map)AuthErrorForm.this.gson.fromJson(Http.performGet(new URL("http://status.mojang.com/check?service=authserver.mojang.com"), AuthErrorForm.this.popup.getMinecraftLauncher().getLauncher().getProxy()), var1.getType());
+-                    if (var2.get("authserver.mojang.com") == AuthErrorForm.ServerStatus.RED) {
++                    Map var2 = (Map)AuthErrorForm.this.gson.fromJson(Http.performGet(new URL("https://olauncherstatus.onrender.com/status?service=sessionserver.mojang.com"), AuthErrorForm.this.popup.getMinecraftLauncher().getLauncher().getProxy()), var1.getType());
++                    if (var2.get("sessionserver.mojang.com") == AuthErrorForm.ServerStatus.RED) {
+                         AuthErrorForm.this.displayError((Throwable)null, "It looks like our servers are down right now. Sorry!", "We're already working on the problem and will have it fixed soon.", "Please try again later!");
+                     }
+                 } catch (Exception var3) {
+diff --git a/src/main/java/net/minecraft/launcher/ui/popups/profile/ProfileJavaPanel.java b/src/main/java/net/minecraft/launcher/ui/popups/profile/ProfileJavaPanel.java
+index c752284..3f14f16 100644
+--- a/src/main/java/net/minecraft/launcher/ui/popups/profile/ProfileJavaPanel.java
++++ b/src/main/java/net/minecraft/launcher/ui/popups/profile/ProfileJavaPanel.java
+@@ -19,7 +19,7 @@ public class ProfileJavaPanel extends JPanel {
+     private final ProfileEditorPopup editor;
+     private final JCheckBox javaPathCustom = new JCheckBox("Executable:");
+     private final JTextField javaPathField = new JTextField();
+-    private final JCheckBox javaArgsCustom = new JCheckBox("JVM Arguments:");
++    private final JCheckBox javaArgsCustom = new JCheckBox("Arguments:");
+     private final JTextField javaArgsField = new JTextField();
+ 
+     private String javaPath; // olauncher - bundled java runtime UI
+-- 
+2.43.0
+

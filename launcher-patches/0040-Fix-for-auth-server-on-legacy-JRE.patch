@@ -1,0 +1,195 @@
+From 1d72a6703f66206b53b9b83935330aca4efa7784 Mon Sep 17 00:00:00 2001
+From: RagedMeteor1837 <148640131+RagedMeteor1837@users.noreply.github.com>
+Date: Sun, 5 Oct 2025 17:29:03 +0100
+Subject: [PATCH] Fix for auth server on legacy JRE
+
+
+diff --git a/src/main/java/net/minecraft/launcher/game/MinecraftGameRunner.java b/src/main/java/net/minecraft/launcher/game/MinecraftGameRunner.java
+index 099cba2..fd7f8c7 100644
+--- a/src/main/java/net/minecraft/launcher/game/MinecraftGameRunner.java
++++ b/src/main/java/net/minecraft/launcher/game/MinecraftGameRunner.java
+@@ -45,6 +45,9 @@ import java.util.Map.Entry;
+ import java.util.zip.ZipEntry;
+ import java.util.zip.ZipFile;
+ import java.util.Arrays;
++import java.util.List;
++import java.util.ArrayList;
++import java.util.concurrent.TimeUnit;
+ 
+ import dev.figboot.olauncher.auth.MicrosoftUserAuthentication;
+ import dev.figboot.olauncher.launcher.runtime.RuntimesManifest;
+@@ -173,14 +176,95 @@ public class MinecraftGameRunner extends AbstractGameRunner implements GameProce
+             var4.directory(var2);
+             var4.withLogProcessor(this.minecraftLauncher.getUserInterface().showGameOutputTab(this));
+             String var5 = this.selectedProfile.getJavaArgs();
++            String[] baseArgs;
+             if (var5 != null) {
+-                var4.withArguments(Arrays.stream(var5.split(" ")).filter(string -> !string.isEmpty()).toArray(String[]::new)); // olauncher - empty items equal to error finding main class
++                baseArgs = Arrays.stream(var5.split(" ")).filter(s -> !s.isEmpty()).toArray(String[]::new);
+             } else {
+                 boolean var6 = "32".equals(System.getProperty("sun.arch.data.model"));
+-                String var7 = var6 ? Profile.DEFAULT_JRE_ARGUMENTS_32BIT : Profile.DEFAULT_JRE_ARGUMENTS_64BIT; // olauncher - use default JVM argument variables
+-                var4.withArguments(var7.split(" "));
++                String var7 = var6 ? Profile.DEFAULT_JRE_ARGUMENTS_32BIT : Profile.DEFAULT_JRE_ARGUMENTS_64BIT;
++                baseArgs = var7.split(" ");
+             }
+ 
++            List<String> finalArgs = new ArrayList<>(Arrays.asList(baseArgs));
++
++            // Detect the *selected* JVM by running "<java> -version" and append args if it's Java 1.8
++            boolean selectedIsJre8 = false;
++            if (javaPath != null) {
++                try {
++                    String exe = javaPath;
++                    File jf = new File(javaPath);
++                    if (jf.isDirectory()) {
++                        File bin = new File(jf, "bin");
++                        File jexe = new File(bin, System.getProperty("os.name").toLowerCase().contains("win") ? "java.exe" : "java");
++                        exe = jexe.getAbsolutePath();
++                    }
++                    ProcessBuilder pb = new ProcessBuilder(exe, "-version");
++                    pb.redirectErrorStream(true);
++                    Process p = pb.start();
++                    StringBuilder out = new StringBuilder();
++                    try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
++                        String ln;
++                        while ((ln = r.readLine()) != null) out.append(ln).append('\n');
++                    }
++                    p.waitFor(2, TimeUnit.SECONDS);
++                    String lower = out.toString().toLowerCase();
++                    selectedIsJre8 = lower.contains("1.8") || lower.contains("java version \"1.8");
++                } catch (Exception e) {
++                    LOGGER.debug("Couldn't probe selected JVM version for " + javaPath, e);
++                }
++            }
++
++            // extract bundled truststore next to the launcher JAR (cross-platform), then add JVM args for JRE 8
++            File extractedTrustStore = null;
++            try {
++                File jarDir = null;
++                try {
++                    java.net.URL codeLoc = MinecraftGameRunner.class.getProtectionDomain().getCodeSource().getLocation();
++                    if (codeLoc != null) {
++                        File codeFile = new File(codeLoc.toURI());
++                        jarDir = codeFile.isFile() ? codeFile.getParentFile() : codeFile;
++                    }
++                } catch (Exception ex) {
++                    // fall back to working directory if we can't resolve code location
++                    jarDir = null;
++                }
++
++                if (jarDir == null) jarDir = this.getLauncher().getWorkingDirectory();
++
++                try (InputStream is = MinecraftGameRunner.class.getResourceAsStream("/mojang-trust.jks")) {
++                    if (is != null) {
++                        extractedTrustStore = new File(jarDir, "mojang-trust.jks");
++                        if (!extractedTrustStore.isFile()) {
++                            // write resource out
++                            try (OutputStream os = new FileOutputStream(extractedTrustStore)) {
++                                byte[] buf = new byte[8192];
++                                int r;
++                                while ((r = is.read(buf)) != -1) os.write(buf, 0, r);
++                            }
++                        }
++                    } else {
++                        LOGGER.debug("mojang-trust.jks resource not found in launcher JAR");
++                    }
++                }
++            } catch (IOException ioe) {
++                LOGGER.warn("Failed to extract mojang-trust.jks to disk", ioe);
++                extractedTrustStore = null;
++            }
++
++            if (selectedIsJre8) {
++                if (extractedTrustStore != null && extractedTrustStore.isFile()) {
++                    finalArgs.add("-Djavax.net.ssl.trustStore=" + extractedTrustStore.getAbsolutePath());
++                } else {
++                    // fallback: try resource path (unlikely to work), kept for debug
++                    finalArgs.add("-Djavax.net.ssl.trustStore=/mojang-trust.jks");
++                }
++                finalArgs.add("-Djavax.net.ssl.trustStorePassword=changeit");
++                finalArgs.add("-Djdk.tls.client.protocols=TLSv1.2");
++            }
++
++            LOGGER.debug("JVM args before version.addArguments: " + StringUtils.join(finalArgs, " "));
++            var4.withArguments(finalArgs.toArray(new String[0]));
++
+             CompatibilityRule.FeatureMatcher var14 = this.createFeatureMatcher();
+             StrSubstitutor var15 = this.createArgumentsSubstitutor(this.getVersion(), this.selectedProfile, var2, var1, this.auth);
+             this.getVersion().addArguments(ArgumentType.JVM, var14, var4, var15);
+diff --git a/src/main/java/net/minecraft/launcher/profile/Profile.java b/src/main/java/net/minecraft/launcher/profile/Profile.java
+index 78a18aa..9fb9bd6 100644
+--- a/src/main/java/net/minecraft/launcher/profile/Profile.java
++++ b/src/main/java/net/minecraft/launcher/profile/Profile.java
+@@ -5,7 +5,10 @@ import com.google.common.collect.Sets;
+ import com.mojang.launcher.updater.VersionFilter;
+ import com.mojang.launcher.versions.ReleaseType;
+ import java.io.File;
++import java.io.BufferedReader;
++import java.io.InputStreamReader;
+ import java.util.Set;
++import java.util.concurrent.TimeUnit;
+ import net.minecraft.launcher.game.MinecraftReleaseType;
+ import net.minecraft.launcher.game.MinecraftReleaseTypeFactory;
+ 
+@@ -13,6 +16,8 @@ public class Profile implements Comparable<Profile> {
+     // olauncher - modernize default JVM arguments
+     public static final String DEFAULT_JRE_ARGUMENTS_64BIT = "-Xmx2G -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M";
+     public static final String DEFAULT_JRE_ARGUMENTS_32BIT = "-Xmx2G -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M";
++    public static final String DEFAULT_JRE_ARGUMENTS_64BIT_JRE8 = "-Xmx2G -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M -Djavax.net.ssl.trustStore=\"/mojang-trust.jks\" -Djavax.net.ssl.trustStorePassword=changeit -Djdk.tls.client.protocols=TLSv1.2";
++    public static final String DEFAULT_JRE_ARGUMENTS_32BIT_JRE8 = "-Xmx2G -XX:+UnlockExperimentalVMOptions -XX:+UseG1GC -XX:G1NewSizePercent=20 -XX:G1ReservePercent=20 -XX:MaxGCPauseMillis=50 -XX:G1HeapRegionSize=32M -Djavax.net.ssl.trustStore=\"/mojang-trust.jks\" -Djavax.net.ssl.trustStorePassword=changeit -Djdk.tls.client.protocols=TLSv1.2";
+     public static final Profile.Resolution DEFAULT_RESOLUTION = new Profile.Resolution(854, 480);
+     public static final LauncherVisibilityRule DEFAULT_LAUNCHER_VISIBILITY;
+     @Deprecated
+diff --git a/src/main/resources/mojang-trust.jks b/src/main/resources/mojang-trust.jks
+new file mode 100644
+index 0000000000000000000000000000000000000000..4e7ce5524ef436c32a14c62c923924f821f12483
+GIT binary patch
+literal 2494
+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
+Cm#{?u
+
+literal 0
+HcmV?d00001
+
+-- 
+2.43.0
+

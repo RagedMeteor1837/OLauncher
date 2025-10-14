@@ -1,4 +1,4 @@
-From 867849ec1e33b88dde75d33df135b7184666419d Mon Sep 17 00:00:00 2001
+From b207c8e754d92b647ae8603402e1d2acacb8bef5 Mon Sep 17 00:00:00 2001
 From: RagedMeteor1837 <148640131+RagedMeteor1837@users.noreply.github.com>
 Date: Fri, 3 Oct 2025 00:37:25 +0100
 Subject: [PATCH] about box w/ status page and release notes
@@ -19,7 +19,7 @@ index a7bb077..63a7a5c 100644
  import java.io.IOException;
  import java.io.InputStream;
 diff --git a/src/main/java/net/minecraft/launcher/ui/tabs/AboutTab.java b/src/main/java/net/minecraft/launcher/ui/tabs/AboutTab.java
-index 4a04058..3b1b015 100644
+index 4a04058..417f2af 100644
 --- a/src/main/java/net/minecraft/launcher/ui/tabs/AboutTab.java
 +++ b/src/main/java/net/minecraft/launcher/ui/tabs/AboutTab.java
 @@ -1,3 +1,6 @@
@@ -354,7 +354,7 @@ index 4a04058..3b1b015 100644
                  for (JsonElement el : arr) {
                      if (!el.isJsonObject()) continue;
                      JsonObject obj = el.getAsJsonObject();
-@@ -139,45 +294,256 @@ public class AboutTab extends JScrollPane {
+@@ -139,45 +294,257 @@ public class AboutTab extends JScrollPane {
                          String state = (e.getValue() != null && !e.getValue().isJsonNull())
                                  ? e.getValue().getAsString()
                                  : "unknown";
@@ -478,6 +478,7 @@ index 4a04058..3b1b015 100644
 +            String name = escape(displayNameFor(it.host));
 +            String state = (it.state == null ? "unknown" : it.state.toLowerCase());
 +            String colour = "green".equals(state) ? "green" :
++                            "amber".equals(state) ? "orange" :
 +                            "red".equals(state) ? "red" : "gray";
 +            String label = state.toUpperCase();
 +

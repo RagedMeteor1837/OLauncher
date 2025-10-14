@@ -88,7 +88,7 @@ jobs:
           cat > l4j.xml <<'XML'
           <launch4jConfig>
             <dontWrapJar>false</dontWrapJar>
-            <headerType>gui</headerType> <!-- or console -->
+            <headerType>gui</headerType>
             <jar>dist/olauncher-2.1.3-redist.jar</jar>
             <outfile>OLauncher-${{ env.APP_VER }}.exe</outfile>
             <errTitle>OLauncher</errTitle>
@@ -96,14 +96,12 @@ jobs:
             <priority>normal</priority>
             <stayAlive>false</stayAlive>
             <restartOnCrash>false</restartOnCrash>
-            <!-- If your JAR lacks a Manifest Main-Class, set mainClass below -->
             <classPath>
               <mainClass></mainClass>
             </classPath>
             <jre>
-              <minVersion>11</minVersion>
+              <minVersion>8</minVersion>
               <opt>-Xmx512m</opt>
-              <!-- Optional: show a friendly URL if Java is missing -->
               <jdkPreference>preferJre</jdkPreference>
               <runtimeBits>64/32</runtimeBits>
             </jre>
@@ -120,6 +118,12 @@ jobs:
             </versionInfo>
           </launch4jConfig>
           XML
+
+      - name: Set up Java (for Launch4j)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
 
       - name: Build EXE
         run: '"%ProgramFiles(x86)%\Launch4j\launch4jc.exe" l4j.xml'
@@ -171,7 +175,7 @@ jobs:
             <key>CFBundleShortVersionString</key><string>${APP_VER}</string>
             <key>CFBundleExecutable</key><string>OLauncher</string>
             <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
-            <key>LSMinimumSystemVersion</key><string>10.13</string>
+            <key>LSMinimumSystemVersion</key><string>10.6</string>
           </dict></plist>
           PLIST
 

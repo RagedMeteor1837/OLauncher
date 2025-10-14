@@ -105,17 +105,6 @@ jobs:
               <jdkPreference>preferJre</jdkPreference>
               <runtimeBits>64/32</runtimeBits>
             </jre>
-            <versionInfo>
-              <fileVersion>${{ env.APP_VER }}.0</fileVersion>
-              <txtFileVersion>${{ env.APP_VER }}</txtFileVersion>
-              <productVersion>${{ env.APP_VER }}.0</productVersion>
-              <txtProductVersion>${{ env.APP_VER }}</txtProductVersion>
-              <fileDescription>OLauncher</fileDescription>
-              <productName>OLauncher</productName>
-              <originalFilename>OLauncher.exe</originalFilename>
-              <internalName>OLauncher</internalName>
-              <companyName>OLauncher</companyName>
-            </versionInfo>
           </launch4jConfig>
           XML
 

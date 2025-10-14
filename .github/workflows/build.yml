@@ -130,62 +130,62 @@ jobs:
           name: OLauncher Windows EXE
           path: OLauncher-${{ env.APP_VER }}.exe
 
-macos-build:
-  runs-on: macos-latest
-  needs: build
-  steps:
-    - name: Download redistributable jar
-      uses: actions/download-artifact@v4
-      with:
-        name: OLauncher Redistributable JAR
-        path: dist
+  macos-build:
+    runs-on: macos-latest
+    needs: build
+    steps:
+      - name: Download redistributable jar
+        uses: actions/download-artifact@v4
+        with:
+          name: OLauncher Redistributable JAR
+          path: dist
 
-    - name: Create .app
-      run: |
-        APP="OLauncher.app"
-        mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+      - name: Create .app
+        run: |
+          APP="OLauncher.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 
-        # Launcher (uses system Java on PATH)
-        cat > "$APP/Contents/MacOS/OLauncher" <<'SH'
-        #!/bin/bash
-        set -e
-        DIR="$(cd "$(dirname "$0")"/../Resources && pwd)"
-        if ! command -v /usr/bin/env >/dev/null || ! /usr/bin/env java -version >/dev/null 2>&1; then
-          osascript -e 'display dialog "Java 11+ is required. Please install a JRE/JDK." buttons {"OK"} default button 1 with icon stop'
-          exit 1
-        fi
-        exec /usr/bin/env java -jar "$DIR/olauncher-2.1.3-redist.jar"
-        SH
-        chmod +x "$APP/Contents/MacOS/OLauncher"
+          # Launcher (uses system Java on PATH)
+          cat > "$APP/Contents/MacOS/OLauncher" <<'SH'
+          #!/bin/bash
+          set -e
+          DIR="$(cd "$(dirname "$0")"/../Resources && pwd)"
+          if ! command -v /usr/bin/env >/dev/null || ! /usr/bin/env java -version >/dev/null 2>&1; then
+            osascript -e 'display dialog "Java 11+ is required. Please install a JRE/JDK." buttons {"OK"} default button 1 with icon stop'
+            exit 1
+          fi
+          exec /usr/bin/env java -jar "$DIR/olauncher-2.1.3-redist.jar"
+          SH
+          chmod +x "$APP/Contents/MacOS/OLauncher"
 
-        # Info.plist
-        cat > "$APP/Contents/Info.plist" <<PLIST
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0"><dict>
-          <key>CFBundleName</key><string>OLauncher</string>
-          <key>CFBundleDisplayName</key><string>OLauncher</string>
-          <key>CFBundleIdentifier</key><string>com.olauncher.app</string>
-          <key>CFBundleVersion</key><string>${APP_VER}</string>
-          <key>CFBundleShortVersionString</key><string>${APP_VER}</string>
-          <key>CFBundleExecutable</key><string>OLauncher</string>
-          <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
-          <key>LSMinimumSystemVersion</key><string>10.13</string>
-        </dict></plist>
-        PLIST
+          # Info.plist
+          cat > "$APP/Contents/Info.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>CFBundleName</key><string>OLauncher</string>
+            <key>CFBundleDisplayName</key><string>OLauncher</string>
+            <key>CFBundleIdentifier</key><string>com.olauncher.app</string>
+            <key>CFBundleVersion</key><string>${APP_VER}</string>
+            <key>CFBundleShortVersionString</key><string>${APP_VER}</string>
+            <key>CFBundleExecutable</key><string>OLauncher</string>
+            <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+            <key>LSMinimumSystemVersion</key><string>10.13</string>
+          </dict></plist>
+          PLIST
 
-        # Put JAR in Resources
-        cp dist/olauncher-2.1.3-redist.jar "$APP/Contents/Resources/"
+          # Put JAR in Resources
+          cp dist/olauncher-2.1.3-redist.jar "$APP/Contents/Resources/"
 
-    - name: Build DMG
-      run: |
-        hdiutil create -volname "OLauncher" -srcfolder "OLauncher.app" -ov -format UDZO "OLauncher-${APP_VER}.dmg"
+      - name: Build DMG
+        run: |
+          hdiutil create -volname "OLauncher" -srcfolder "OLauncher.app" -ov -format UDZO "OLauncher-${APP_VER}.dmg"
 
-    - name: Upload macOS DMG
-      uses: actions/upload-artifact@v4
-      with:
-        name: OLauncher macOS DMG
-        path: OLauncher-${{ env.APP_VER }}.dmg
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: OLauncher macOS DMG
+          path: OLauncher-${{ env.APP_VER }}.dmg
 
   draft-release:
     if: ${{ github.ref_type == 'tag' }}

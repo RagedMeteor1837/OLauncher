@@ -86,6 +86,26 @@ jobs:
         id: jar
         shell: bash
         run: echo "JAR=$(ls dist/*-redist.jar | head -n1)" >> $GITHUB_OUTPUT
+        # Remove when finished
+      - name: Compute APP_VER
+        shell: bash
+        run: |
+          APP_VER="${GITHUB_REF_NAME#v}"
+
+          is_numeric_ver() {
+            [[ "$1" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]
+          }
+
+          if [[ "${GITHUB_REF_TYPE}" != "tag" || ! $(is_numeric_ver "$APP_VER") ]]; then
+            POM_VER=$(grep -m1 '<version>' olauncher/pom.xml | sed -E 's/.*<version>([^<]+).*/\1/')
+            if is_numeric_ver "$POM_VER"; then
+              APP_VER="$POM_VER"
+            else
+              APP_VER="0.0.${GITHUB_RUN_NUMBER}"
+            fi
+          fi
+
+          echo "APP_VER=$APP_VER" >> "$GITHUB_ENV"
       - name: Build EXE with jpackage
         shell: bash
         run: |
@@ -94,7 +114,7 @@ jobs:
           jpackage \
             --type exe \
             --name "OLauncher" \
-            --app-version "${APP_VER:-0.0.0}" \
+            --app-version "${APP_VER}" \
             --input dist \
             --main-jar "$(basename '${{ steps.jar.outputs.JAR }}')" \
             --vendor "OLauncher" \
@@ -131,6 +151,26 @@ jobs:
       - name: Find redistributable JAR
         id: jar
         run: echo "JAR=$(ls dist/*-redist.jar | head -n1)" >> $GITHUB_OUTPUT
+      # Remove when finished
+      - name: Compute APP_VER
+        shell: bash
+        run: |
+          APP_VER="${GITHUB_REF_NAME#v}"
+
+          is_numeric_ver() {
+            [[ "$1" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]
+          }
+
+          if [[ "${GITHUB_REF_TYPE}" != "tag" || ! $(is_numeric_ver "$APP_VER") ]]; then
+            POM_VER=$(grep -m1 '<version>' olauncher/pom.xml | sed -E 's/.*<version>([^<]+).*/\1/')
+            if is_numeric_ver "$POM_VER"; then
+              APP_VER="$POM_VER"
+            else
+              APP_VER="0.0.${GITHUB_RUN_NUMBER}"
+            fi
+          fi
+
+          echo "APP_VER=$APP_VER" >> "$GITHUB_ENV"
       - name: Build DMG with jpackage
         run: |
           APP_VER="${GITHUB_REF_NAME#v}"
@@ -138,7 +178,7 @@ jobs:
           jpackage \
             --type dmg \
             --name "OLauncher" \
-            --app-version "${APP_VER:-0.0.0}" \
+            --app-version "${APP_VER}" \
             --input dist \
             --main-jar "$(basename '${{ steps.jar.outputs.JAR }}')" \
             --vendor "OLauncher" \

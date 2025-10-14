@@ -69,91 +69,123 @@ jobs:
         name: OLauncher Redistributable JAR
         path: olauncher-*-redist.jar
 
-  package-windows:
+  windows-build:
     runs-on: windows-latest
     needs: build
-    outputs:
-      artifact-id: ${{ steps.upload-win.outputs.artifact-id }}
     steps:
       - name: Download redistributable jar
         uses: actions/download-artifact@v4
         with:
           name: OLauncher Redistributable JAR
           path: dist
-      - name: Set up JDK 21 (includes jpackage)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-      - name: Find redistributable JAR
-        id: jar
-        shell: bash
-        run: echo "JAR=$(ls dist/*-redist.jar | head -n1)" >> $GITHUB_OUTPUT
-      - name: Build EXE with jpackage
-        shell: bash
-        run: |
-          APP_VER="${GITHUB_REF_NAME#v}"
-          # If your JAR lacks a Main-Class manifest, add: --main-class fully.qualified.Main
-          jpackage \
-            --type exe \
-            --name "OLauncher" \
-            --app-version "${{ env.APP_VER }}" \
-            --input dist \
-            --main-jar "$(basename '${{ steps.jar.outputs.JAR }}')" \
-            --vendor "OLauncher" \
-            --dest . \
-            --win-dir-chooser \
-            --win-menu \
-            --win-shortcut
-      - name: Upload Windows installer
-        uses: actions/upload-artifact@v4
-        id: upload-win
-        with:
-          name: OLauncher Windows Installer
-          path: |
-            *.exe
-            *.msi
-          if-no-files-found: warn
 
-  package-macos:
-    runs-on: macos-latest
-    needs: build
-    outputs:
-      artifact-id: ${{ steps.upload-mac.outputs.artifact-id }}
-    steps:
-      - name: Download redistributable jar
-        uses: actions/download-artifact@v4
-        with:
-          name: OLauncher Redistributable JAR
-          path: dist
-      - name: Set up JDK 21 (includes jpackage)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-      - name: Find redistributable JAR
-        id: jar
-        run: echo "JAR=$(ls dist/*-redist.jar | head -n1)" >> $GITHUB_OUTPUT
-      - name: Build DMG with jpackage
+      - name: Install Launch4j
+        run: choco install -y launch4j
+
+      - name: Write Launch4j config
+        shell: bash
         run: |
-          APP_VER="${GITHUB_REF_NAME#v}"
-          # If your JAR lacks a Main-Class manifest, add: --main-class fully.qualified.Main
-          jpackage \
-            --type dmg \
-            --name "OLauncher" \
-            --app-version "${{ env.APP_VER }}" \
-            --input dist \
-            --main-jar "$(basename '${{ steps.jar.outputs.JAR }}')" \
-            --vendor "OLauncher" \
-            --dest .
-      - name: Upload macOS installer
+          cat > l4j.xml <<'XML'
+          <launch4jConfig>
+            <dontWrapJar>false</dontWrapJar>
+            <headerType>gui</headerType> <!-- or console -->
+            <jar>dist/olauncher-2.1.3-redist.jar</jar>
+            <outfile>OLauncher-${{ env.APP_VER }}.exe</outfile>
+            <errTitle>OLauncher</errTitle>
+            <chdir>.</chdir>
+            <priority>normal</priority>
+            <stayAlive>false</stayAlive>
+            <restartOnCrash>false</restartOnCrash>
+            <!-- If your JAR lacks a Manifest Main-Class, set mainClass below -->
+            <classPath>
+              <mainClass></mainClass>
+            </classPath>
+            <jre>
+              <minVersion>11</minVersion>
+              <opt>-Xmx512m</opt>
+              <!-- Optional: show a friendly URL if Java is missing -->
+              <jdkPreference>preferJre</jdkPreference>
+              <runtimeBits>64/32</runtimeBits>
+            </jre>
+            <versionInfo>
+              <fileVersion>${{ env.APP_VER }}.0</fileVersion>
+              <txtFileVersion>${{ env.APP_VER }}</txtFileVersion>
+              <productVersion>${{ env.APP_VER }}.0</productVersion>
+              <txtProductVersion>${{ env.APP_VER }}</txtProductVersion>
+              <fileDescription>OLauncher</fileDescription>
+              <productName>OLauncher</productName>
+              <originalFilename>OLauncher.exe</originalFilename>
+              <internalName>OLauncher</internalName>
+              <companyName>OLauncher</companyName>
+            </versionInfo>
+          </launch4jConfig>
+          XML
+
+      - name: Build EXE
+        run: '"%ProgramFiles(x86)%\Launch4j\launch4jc.exe" l4j.xml'
+
+      - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
-        id: upload-mac
         with:
-          name: OLauncher macOS DMG
-          path: |
-            *.dmg
-          if-no-files-found: warn
+          name: OLauncher Windows EXE
+          path: OLauncher-${{ env.APP_VER }}.exe
+
+macos-build:
+  runs-on: macos-latest
+  needs: build
+  steps:
+    - name: Download redistributable jar
+      uses: actions/download-artifact@v4
+      with:
+        name: OLauncher Redistributable JAR
+        path: dist
+
+    - name: Create .app
+      run: |
+        APP="OLauncher.app"
+        mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+
+        # Launcher (uses system Java on PATH)
+        cat > "$APP/Contents/MacOS/OLauncher" <<'SH'
+        #!/bin/bash
+        set -e
+        DIR="$(cd "$(dirname "$0")"/../Resources && pwd)"
+        if ! command -v /usr/bin/env >/dev/null || ! /usr/bin/env java -version >/dev/null 2>&1; then
+          osascript -e 'display dialog "Java 11+ is required. Please install a JRE/JDK." buttons {"OK"} default button 1 with icon stop'
+          exit 1
+        fi
+        exec /usr/bin/env java -jar "$DIR/olauncher-2.1.3-redist.jar"
+        SH
+        chmod +x "$APP/Contents/MacOS/OLauncher"
+
+        # Info.plist
+        cat > "$APP/Contents/Info.plist" <<PLIST
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0"><dict>
+          <key>CFBundleName</key><string>OLauncher</string>
+          <key>CFBundleDisplayName</key><string>OLauncher</string>
+          <key>CFBundleIdentifier</key><string>com.olauncher.app</string>
+          <key>CFBundleVersion</key><string>${APP_VER}</string>
+          <key>CFBundleShortVersionString</key><string>${APP_VER}</string>
+          <key>CFBundleExecutable</key><string>OLauncher</string>
+          <key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+          <key>LSMinimumSystemVersion</key><string>10.13</string>
+        </dict></plist>
+        PLIST
+
+        # Put JAR in Resources
+        cp dist/olauncher-2.1.3-redist.jar "$APP/Contents/Resources/"
+
+    - name: Build DMG
+      run: |
+        hdiutil create -volname "OLauncher" -srcfolder "OLauncher.app" -ov -format UDZO "OLauncher-${APP_VER}.dmg"
+
+    - name: Upload macOS DMG
+      uses: actions/upload-artifact@v4
+      with:
+        name: OLauncher macOS DMG
+        path: OLauncher-${{ env.APP_VER }}.dmg
 
   draft-release:
     if: ${{ github.ref_type == 'tag' }}

@@ -6,8 +6,8 @@ on:
     tags: [ "v*", "ci-test/**" ]
   pull_request:
     branches: [ "cross-platform-builds" ]
-  env:
-    APP_VER: "2.1.3"
+env:
+  APP_VER: "2.1.3"
 
 
 jobs:

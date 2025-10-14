@@ -123,6 +123,7 @@ jobs:
 
       - name: Build EXE
         run: '"%ProgramFiles(x86)%\Launch4j\launch4jc.exe" l4j.xml'
+        shell: cmd
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4

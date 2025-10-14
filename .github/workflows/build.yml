@@ -97,7 +97,7 @@ jobs:
             <stayAlive>false</stayAlive>
             <restartOnCrash>false</restartOnCrash>
             <classPath>
-              <mainClass></mainClass>
+              <mainClass>dev.figboot.autool.AutoOL</mainClass>
             </classPath>
             <jre>
               <minVersion>8</minVersion>
@@ -119,13 +119,13 @@ jobs:
           </launch4jConfig>
           XML
 
-      - name: Set up Java (for Launch4j)
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '11'
 
-      - name: Build EXE via launch4j.jar (uses JAVA_HOME)
+      - name: Build EXE via launch4j.jar
         shell: bash
         run: |
           "$JAVA_HOME/bin/java" -jar "/c/Program Files (x86)/Launch4j/launch4j.jar" l4j.xml

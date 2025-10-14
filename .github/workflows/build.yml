@@ -125,9 +125,10 @@ jobs:
           distribution: temurin
           java-version: '11'
 
-      - name: Build EXE
-        run: '"%ProgramFiles(x86)%\Launch4j\launch4jc.exe" l4j.xml'
-        shell: cmd
+      - name: Build EXE via launch4j.jar (uses JAVA_HOME)
+        shell: bash
+        run: |
+          "$JAVA_HOME/bin/java" -jar "/c/Program Files (x86)/Launch4j/launch4j.jar" l4j.xml
 
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4

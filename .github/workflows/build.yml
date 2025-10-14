@@ -189,7 +189,7 @@ jobs:
 
   draft-release:
     if: ${{ github.ref_type == 'tag' }}
-    needs: [build, package-windows, package-macos]
+    needs: [build, windows-build, macos-build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -197,7 +197,7 @@ jobs:
       - name: Download all release artifacts
         uses: actions/download-artifact@v4
         with:
-          artifact-ids: ${{ needs.build.outputs.artifact-id }},${{ needs.package-windows.outputs.artifact-id }},${{ needs.package-macos.outputs.artifact-id }}
+          artifact-ids: ${{ needs.build.outputs.artifact-id }},${{ needs.windows-build.outputs.artifact-id }},${{ needs.macos-build.outputs.artifact-id }}
           merge-multiple: true
           path: release-assets
       - name: Create release draft with JAR + installers

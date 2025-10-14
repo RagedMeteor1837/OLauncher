@@ -89,7 +89,7 @@ jobs:
           mkdir -p assets icons
           curl -L -o minecraft-launcher.jar \
             https://launcher.mojang.com/v1/objects/eabbff5ff8e21250e33670924a0c5e38f47c840b/launcher.jar
-          unzip -p minecraft-launcher.jar minecraft_logo.png > assets/minecraft_logo.png
+          unzip -p minecraft-launcher.jar favicon.png > assets/minecraft_logo.png
 
       - name: Make Windows .ico from PNG
         shell: bash
@@ -157,7 +157,7 @@ jobs:
           mkdir -p assets
           curl -L -o minecraft-launcher.jar \
             https://launcher.mojang.com/v1/objects/eabbff5ff8e21250e33670924a0c5e38f47c840b/launcher.jar
-          unzip -p minecraft-launcher.jar minecraft_logo.png > assets/minecraft_logo.png
+          unzip -p minecraft-launcher.jar favicon.png > assets/minecraft_logo.png
 
       - name: Make macOS .icns from PNG
         run: |

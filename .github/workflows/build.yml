@@ -97,7 +97,7 @@ jobs:
           jpackage \
             --type exe \
             --name "OLauncher" \
-            --app-version "${{ env.APP_VER }}" \            
+            --app-version "${{ env.APP_VER }}" \
             --input dist \
             --main-jar "$(basename '${{ steps.jar.outputs.JAR }}')" \
             --vendor "OLauncher" \
@@ -141,7 +141,7 @@ jobs:
           jpackage \
             --type dmg \
             --name "OLauncher" \
-            --app-version "${{ env.APP_VER }}" \            
+            --app-version "${{ env.APP_VER }}" \
             --input dist \
             --main-jar "$(basename '${{ steps.jar.outputs.JAR }}')" \
             --vendor "OLauncher" \

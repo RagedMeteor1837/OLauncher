@@ -45,4 +45,4 @@ These commands must be run in the following order to build from source:
 - `maintain.sh`
   - Provides maintenance utilities for the launcher build.
 - `rebuildPatches.sh`
-  - Regenerates patch files by cleaning and updating them against the current repository state, ensuring they stay in sync with the decompiled sources.
+  - Regenerates patch files by cleaning and updating them against the current repository state.
